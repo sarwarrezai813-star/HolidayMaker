@@ -244,4 +244,69 @@ static class BokningHantering
                     
                 }
     }
+    // Ändrar antalet personer om det nya antalet ryms i rummet
+    public static async Task AndraAntalPersonerAsync(MySqlConnection connection)
+    {
+        Console.Write("Ange bokningsnummer: ");
+                string? bokningsnummerInput = Console.ReadLine();
+                if (!int.TryParse(bokningsnummerInput, out int bokningsnummer) || bokningsnummer <= 0)
+                {
+                     Console.WriteLine("Ogiltigt bokningsnummer.");
+                     return;
+                }
+                Console.Write("Ange nytt antal personer: ");
+                string? antalPersonerInput = Console.ReadLine();
+                if (!int.TryParse(antalPersonerInput, out int nyttAntalPersoner) || nyttAntalPersoner <= 0)
+                {
+                    Console.WriteLine("Ogiltigt antal personer.");
+                    return;
+                }
+                // Hämtar maxantalet för rummet som hör till bokning
+                string maxPersonerSql = """
+                   SELECT r.max_personer
+                   FROM bokning b
+                   JOIN rum r ON b.rum_id = r.id
+                   WHERE b.id = @bokningsnummer
+                """;
+                // Skapar kommandot som ska köra SQL
+                await using var maxPersonerCommand = new MySqlCommand(maxPersonerSql, connection);
+                maxPersonerCommand.Parameters.AddWithValue("@bokningsnummer", bokningsnummer);
+                // Hämtar det enda värdet vi behöver från frågan
+                object? maxPersonerResultat = await maxPersonerCommand.ExecuteScalarAsync();
+                // Avbryter om SQL-frågan inte hittade någon bokning
+                if (maxPersonerResultat is null)
+                {
+                    Console.WriteLine("Bokning hittades inte.");
+                    return;
+                }
+                // Gör om värdet från databasen till ett heltal
+                int maxPersoner = Convert.ToInt32(maxPersonerResultat);
+                if (nyttAntalPersoner > maxPersoner)
+                {
+                    Console.WriteLine($"Rummet rymmer högst {maxPersoner} personer.");
+                    return;
+                }
+                // Uppdaterar den valda bokningen om det nya antalet ryms i rummet
+                string uppdateraAntalSql = """
+                    UPDATE bokning b
+                    JOIN rum r ON b.rum_id = r.id
+                    SET b.antal_personer = @nyttAntalPersoner
+                    WHERE b.id = @bokningsnummer
+                    AND @nyttAntalPersoner <= r.max_personer
+                """;
+                // Skapar kommandot och skickar värdena till SQL
+                await using var uppdateraAntalCommand = new MySqlCommand(uppdateraAntalSql, connection);
+                uppdateraAntalCommand.Parameters.AddWithValue("@nyttAntalPersoner", nyttAntalPersoner);
+                uppdateraAntalCommand.Parameters.AddWithValue("@bokningsnummer", bokningsnummer);
+                int berordaRader = await uppdateraAntalCommand.ExecuteNonQueryAsync();
+                if (berordaRader > 0)
+                {
+                    Console.WriteLine($"Antal personer i bokning {bokningsnummer} är nu {nyttAntalPersoner}.");
+                
+                }
+                else
+                {
+                    Console.WriteLine("Ingen ändring sparades.");
+                }
+    }
 }
