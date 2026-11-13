@@ -73,33 +73,8 @@ while (fortsatt)
             // för avbokning
             case "7":
             {
-                Console.Write("Ange bokningsnummer att avboka: ");
-                string? avbokningsnummerInpuut = Console.ReadLine();
-                // kontroll för bokningsnumret är positvit heltal
-                if (!int.TryParse(avbokningsnummerInpuut, out int avbokningsnummer) || avbokningsnummer <= 0)
-                {
-                    Console.WriteLine("Ogiltigt bokningsnummer.");
-                    break;
-                }
-                // Tar bort bokningen med det angivna bokningsnumret när frågan körs
-                string avbokaSql = """
-                    DELETE FROM bokning
-                    WHERE id = @bokningsnummer
-                """;
-                // Skapar kommandot för avbokningen
-                await using var avbokaCommand = new MySqlCommand(avbokaSql, connection);
-                // kopplar numret som användare skrev till parametern i WHERE
-                avbokaCommand.Parameters.AddWithValue("@bokningsnummer", avbokningsnummer);
-                // Kör delete och räknar hur många rader som togs bort
-                int borttagnaRader = await avbokaCommand.ExecuteNonQueryAsync();
-                if (borttagnaRader > 0)
-                {
-                    Console.WriteLine($"Bokning {avbokningsnummer} har avbokats.");
-                }
-                else
-                {
-                    Console.WriteLine("Bokningen hittades inte.");
-                }
+                // Kör avbokningen med den öppna databasanslutningen
+                await BokningHantering.AvbokaAsync(connection);
 
                 break;
             }
