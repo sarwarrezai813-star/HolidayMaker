@@ -58,63 +58,8 @@ while (fortsatt)
             // Visar bokningar för en vald kund
             case "5":
             {
-                Console.WriteLine("Du valde att visa kundens bokningar.");
-                Console.Write("Ange kundens ID: ");
-                string? kundIdInput = Console.ReadLine();
-                // kontroll att kundens ID är ett positivt heltal
-                bool giltigtKundId = int.TryParse(kundIdInput, out int visaKundId) && visaKundId > 0;
-                // kontoll om kund_ID är giltigt
-                if (!giltigtKundId)
-                {
-                    Console.WriteLine("Ogiltigt kund-ID.");
-                    break;
-                }
-                // Hämtar kundens bokningar från databasen
-                string bokningarSql = """
-                   SELECT b.*, bo.namn As boende_namn, r.pris_per_natt, r.rumsnummer
-                   FROM bokning b
-                   JOIN rum r ON b.rum_id = r.id
-                   JOIN boende bo ON r.boende_id = bo.id
-                   WHERE b.kund_id = @kundId
-                   ORDER BY b.incheckning ASC
-                """;
-                // skapar SQL-kommandot som ska hämta kundens bokningar
-                await using var bokningarCommand = new MySqlCommand(bokningarSql, connection);
-                // Skickar kundens ID till SQL-frågan
-                bokningarCommand.Parameters.AddWithValue("@kundId", visaKundId);
-                // kör SQL-frågan och hämtar kundens bokningar
-                await using var bokningarReader = await bokningarCommand.ExecuteReaderAsync();
-                // Läser kundens bokningar en i taget
-                while (await bokningarReader.ReadAsync())
-                {
-                    // Hämtar bokningsnumret från bokningen
-                    int bokningsId = bokningarReader.GetInt32("id");
-                    // Hämtar rumsnummer som text från SQL
-                    string rumsnummer = bokningarReader.GetString("rumsnummer");
-                    // Hämtar namnet på boende frå SQL-resultatet
-                    string boendeNamn = bokningarReader.GetString("boende_namn");
-                    // Hämtar incheckningsdatum för bokninngen
-                    DateTime bokningIncheckningDatum = bokningarReader.GetDateTime("incheckning");
-                    // Hämtar utcheckningsdatum för bokningen
-                    DateTime bokningUtcheckningDatum = bokningarReader.GetDateTime("utcheckning");
-                    // Hämtar hur många personer bokningen gäller
-                    int bokningAntalPersoner = bokningarReader.GetInt32("antal_personer");
-                    // Hämtar rummets pris per natt från SQl
-                    decimal prisPerNatt = bokningarReader.GetDecimal("pris_per_natt");
-                    // Räknar ut hur många nätter kunden ska bo
-                    int antalNatter = (bokningUtcheckningDatum - bokningIncheckningDatum).Days;
-                    // Räknar ut totalpriset genom antal nätter gånger pris per natt
-                    decimal totalpris = antalNatter * prisPerNatt;
-                    Console.WriteLine($"Bokningsnummer: {bokningsId}");
-                    Console.WriteLine($"Rumsnummer: {rumsnummer}");
-                    Console.WriteLine($"Boende: {boendeNamn}");
-                    Console.WriteLine($"Incheckning: {bokningIncheckningDatum:yyyy-MM-dd}");
-                    Console.WriteLine($"Utcheckning: {bokningUtcheckningDatum:yyyy-MM-dd}");
-                    Console.WriteLine($"Antal personer: {bokningAntalPersoner}");
-                    Console.WriteLine($"Totalpris: {totalpris:F2} kr");
-                    Console.WriteLine("---------------------");
-                    
-                }
+                // Visar kundens bokningar med den öppna databasanslutningen
+                await BokningHantering.VisaKundensBokningarAsync(connection);
                 break;
             }
             // Ändra antal personer
