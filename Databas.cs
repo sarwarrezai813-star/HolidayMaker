@@ -1,7 +1,7 @@
 
 using MySqlConnector;
 
-static class Database
+static class Databas
 {
     public static string HamtaConnectionString()
     {
