@@ -48,7 +48,11 @@ Datum anges i formatet `ÅÅÅÅ-MM-DD`, t.ex. `2026-12-10`.
 ## Projektfiler 
 | Fil  | Vad filen innehåller |
 | ---  | --- |
-| [Program.cs](Program.cs) | C#-koden för menyn, rumssökningen och hanteringen av kunder och bokningar. |
+| [Program.cs](Program.cs) | Startar programmet, visar huvudmenyn och anropar rätt metod för varje menyval. |
+| [Databas.cs](Databas.cs) | Bygger anslutningssträngen till MySQL och hämtar lösenord från miljövariabeln `MYSQL_PASSWORD`. |
+| [KundHantering.cs](KundHantering.cs) | Visar och registrerar kunder. |
+| [RumSokning.cs](RumSokning.cs) | Söker och sorterar lediga rum utifrån användarens val. |
+| [BokningHantering.cs](BokningHantering.cs) | Skapar, visar, ändrar och avbpkar bokningar. |
 | [HolidayMaker.csproj](HolidayMaker.csproj) | Projektets inställningar, bland annat .NET-versionen och paketet MySqlConnector. |
 | [holiday_maker.sql](holiday_maker.sql) | SQL-skriptet som skapar databasen, tabellerna och lägger in testdata. |
 | [README.md](README.md) | Instruktioner för att starta och använda programmet. |
